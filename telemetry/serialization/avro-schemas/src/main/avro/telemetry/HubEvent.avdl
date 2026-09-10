@@ -1,14 +1,7 @@
 @namespace("ru.yandex.practicum.kafka.telemetry.event")
 protocol HubEventProtocol {
 
-    enum HubEventType{
-        DEVICE_ADDED,
-        DEVICE_REMOVED,
-        SCENARIO_ADDED,
-        SCENARIO_REMOVED
-    }
-
-    enum DeviceType{
+    enum DeviceTypeAvro{
         MOTION_SENSOR,
         TEMPERATURE_SENSOR,
         LIGHT_SENSOR,
@@ -16,7 +9,7 @@ protocol HubEventProtocol {
         SWITCH_SENSOR
     }
 
-    enum ScenarioType {
+    enum ConditionTypeAvro {
         MOTION,
         LUMINOSITY,
         SWITCH,
@@ -25,60 +18,54 @@ protocol HubEventProtocol {
         HUMIDITY
     }
 
-    enum Operation{
+    enum ConditionOperationAvro{
         EQUALS,
         GREATER_THAN,
         LOWER_THAN
     }
 
-    enum DeviceActionType{
+    enum ActionTypeAvro{
         ACTIVATE,
         DEACTIVATE,
         INVERSE,
         SET_VALUE
     }
 
-    record ScenarioCondition{
+    record ScenarioConditionAvro{
         string sensorId;
-        ScenarioType type;
-        Operation operation;
+        ConditionTypeAvro type;
+        ConditionOperationAvro operation;
+        union { null, int, boolean } value = null;
+    }
+
+    record DeviceActionAvro{
+        string sensorId;
+        ActionTypeAvro type;
         union { null, int } value = null;
     }
 
-    record DeviceAction{
-        string sensorId;
-        DeviceActionType type;
-        union { null, int } value = null;
-    }
-
-    record DeviceAddedEvent{
-        string hubId;
-        union { null, timestamp_ms } timestamp = null;
+    record DeviceAddedEventAvro{
         string id;
-        DeviceType deviceType;
-        HubEventType type;
+        DeviceTypeAvro deviceType;
     }
 
-    record DeviceRemovedEvent{
-        string hubId;
-        union { null, timestamp_ms } timestamp = null;
+    record DeviceRemovedEventAvro{
         string id;
-        HubEventType type;
     }
 
-    record ScenarioAddedEvent{
-        string hubId;
-        union { null, timestamp_ms } timestamp = null;
+    record ScenarioAddedEventAvro{
         string name;
-        array<ScenarioCondition> conditions;
-        array<DeviceAction> actions;
-        HubEventType type;
+        array<ScenarioConditionAvro> conditions;
+        array<DeviceActionAvro> actions;
     }
 
-    record ScenarioRemovedEvent{
-        string hubId;
-        union { null, timestamp_ms } timestamp = null;
+    record ScenarioRemovedEventAvro{
         string name;
-        HubEventType type;
+    }
+
+    record HubEventAvro{
+        string hubId;
+        timestamp_ms timestamp;
+        union { DeviceAddedEventAvro, DeviceRemovedEventAvro, ScenarioAddedEventAvro, ScenarioRemovedEventAvro } payload;
     }
 }
