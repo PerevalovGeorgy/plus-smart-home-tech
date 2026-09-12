@@ -46,7 +46,7 @@ protocol HubEventProtocol {
 
     record DeviceAddedEventAvro{
         string id;
-        DeviceTypeAvro deviceType;
+        DeviceTypeAvro type;
     }
 
     record DeviceRemovedEventAvro{
@@ -64,7 +64,7 @@ protocol HubEventProtocol {
     }
 
     record HubEventAvro{
-        string hubId;
+        string hub_id;
         timestamp_ms timestamp;
         union { DeviceAddedEventAvro, DeviceRemovedEventAvro, ScenarioAddedEventAvro, ScenarioRemovedEventAvro } payload;
     }
