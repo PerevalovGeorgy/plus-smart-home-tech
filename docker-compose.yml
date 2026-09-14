@@ -26,7 +26,8 @@ services:
     image: confluentinc/confluent-local:7.4.3
     container_name: kafka-init-topics
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     command: "bash -c \
                 'kafka-topics --create --topic telemetry.sensors.v1 \
                              --partitions 1 --replication-factor 1 --if-not-exists \
@@ -44,7 +45,8 @@ services:
     container_name: schema-registry
     hostname: schema-registry
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "8081:8081"
     restart: unless-stopped
