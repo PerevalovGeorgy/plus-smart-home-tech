@@ -32,7 +32,6 @@ public class HubReaderTest {
                     System.out.println("OK offset=" + r.offset() + " key=" + r.key() + " value=" + r.value());
                 }
                 if (total > 0 && records.isEmpty()) {
-                    // прочитали всё, что было, и новых нет
                     break;
                 }
             }
