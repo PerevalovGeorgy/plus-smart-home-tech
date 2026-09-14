@@ -3,14 +3,14 @@ spring:
     name: collector
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 kafka:
-  bootstrap-servers: localhost:9092
-  schema-registry-url: http://localhost:8081
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
   topics:
-    sensors: telemetry.sensors.v1
-    hubs: telemetry.hubs.v1
+    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
+    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
 
 logging:
   level:
