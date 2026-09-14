@@ -25,9 +25,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.wso2.orbit.io.confluent</groupId>
+            <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.6.0.wso2v2</version>
+            <version>7.6.0</version>
         </dependency>
     </dependencies>
 
