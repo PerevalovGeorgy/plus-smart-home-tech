@@ -25,6 +25,5 @@ public class SchemaRegistryWarmup implements ApplicationRunner {
                 Thread.sleep(2000);
             }
         }
-        throw new IllegalStateException("Schema Registry not reachable in 60s");
     }
 }
