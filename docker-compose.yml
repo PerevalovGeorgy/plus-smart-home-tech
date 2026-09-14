@@ -34,6 +34,22 @@ services:
                              --bootstrap-server kafka:29092'"
     init: true
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.3
+    container_name: schema-registry
+    hostname: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
+
   postgres:
     image: postgres:16.1
     container_name: postgres

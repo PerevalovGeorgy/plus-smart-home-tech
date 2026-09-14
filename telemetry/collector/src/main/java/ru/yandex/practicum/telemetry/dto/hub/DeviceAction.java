@@ -10,5 +10,5 @@ import lombok.ToString;
 public class DeviceAction {
     private String sensorId;
     private ActionType type;
-    private int value;
+    private Integer value;
 }

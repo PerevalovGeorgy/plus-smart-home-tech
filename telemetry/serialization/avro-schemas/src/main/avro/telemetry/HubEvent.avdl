@@ -32,14 +32,14 @@ protocol HubEventProtocol {
     }
 
     record ScenarioConditionAvro{
-        string sensorId;
+        string sensor_id;
         ConditionTypeAvro type;
         ConditionOperationAvro operation;
         union { null, int, boolean } value = null;
     }
 
     record DeviceActionAvro{
-        string sensorId;
+        string sensor_id;
         ActionTypeAvro type;
         union { null, int } value = null;
     }
