@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.dto.hub;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotBlank;
@@ -34,5 +35,6 @@ public abstract class HubEvent {
     private Instant timestamp = Instant.now();
 
     @NotNull
+    @JsonProperty("type")
     public abstract HubEventType getPayload();
 }

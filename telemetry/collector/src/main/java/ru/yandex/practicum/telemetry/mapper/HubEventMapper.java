@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.telemetry.dto.hub.*;
 
 import java.time.Instant;
+import java.util.List;
+
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 @Component
@@ -44,7 +46,7 @@ public class HubEventMapper {
     private ScenarioAddedEventAvro toScenarioAdded(ScenarioAddedEvent dto) {
         return ScenarioAddedEventAvro.newBuilder()
                 .setName(dto.getName())
-                .setConditions(dto.getConditions().stream()
+                .setConditions(dto.getConditions()== null ? List.of() : dto.getConditions().stream()
                         .map(this::toCondition)
                         .toList())
                 .setActions(dto.getActions().stream()

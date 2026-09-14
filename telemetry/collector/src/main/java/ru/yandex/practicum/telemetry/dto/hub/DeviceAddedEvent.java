@@ -11,7 +11,6 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @Schema(description = "добавление нового устройства")
-@NotNull
 public class DeviceAddedEvent extends HubEvent{
 
     @NotBlank
