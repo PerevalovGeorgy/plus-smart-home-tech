@@ -49,7 +49,7 @@ public class HubEventMapper {
                 .setConditions(dto.getConditions()== null ? List.of() : dto.getConditions().stream()
                         .map(this::toCondition)
                         .toList())
-                .setActions(dto.getActions().stream()
+                .setActions(dto.getActions() == null ? List.of() : dto.getActions().stream()
                         .map(this::toAction)
                         .toList())
                 .build();
