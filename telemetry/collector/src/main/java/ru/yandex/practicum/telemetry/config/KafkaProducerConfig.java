@@ -15,7 +15,8 @@ import java.util.Properties;
 public class KafkaProducerConfig {
 
     @Bean
-    public Producer<String, SpecificRecordBase> kafkaProducer(KafkaProducerProperties props) {
+    public Producer<String, SpecificRecordBase> kafkaProducer(KafkaProducerProperties props,
+                                                              SchemaRegistryWarmup warmup) {
         Properties config = new Properties();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,  props.getBootstrapServers());

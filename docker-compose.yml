@@ -17,7 +17,7 @@ services:
       KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       CLUSTER_ID: 'K0EA9p0yEe6MkAAAAkKsEg'
     healthcheck:
-      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
       interval: 10s
       timeout: 10s
       retries: 30
@@ -58,27 +58,9 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/subjects" ]
+      test: [ "CMD-SHELL", "curl -sf http://localhost:8081/subjects >/dev/null" ]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30
+      start_period: 30s
 
-  postgres:
-    image: postgres:16.1
-    container_name: postgres
-    hostname: postgres
-    environment:
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: telemetry_analyzer
-    volumes:
-      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
-      timeout: 5s
-      interval: 5s
-      retries: 10
-    #    volumes:
-    #      - postgres:/data/postgres
-    ports:
-      - "5432:5432"
