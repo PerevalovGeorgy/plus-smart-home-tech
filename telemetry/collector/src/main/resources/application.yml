@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: collector
+
+server:
+  port: ${SERVER_PORT:8080}
+
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  topics:
+    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
+    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.telemetry: DEBUG
+    org.apache.kafka.clients.producer: INFO
+    io.confluent.kafka.serializers: DEBUG
