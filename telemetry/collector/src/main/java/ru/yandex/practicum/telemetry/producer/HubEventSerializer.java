@@ -12,9 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class HubEventSerializer implements Serializer<SpecificRecordBase> {
-    private final EncoderFactory encoderFactory = EncoderFactory.get();
-    private BinaryEncoder encoder;
-
 
     public byte[] serialize(String topic, SpecificRecordBase data) {
         if (data == null) {
@@ -22,7 +19,7 @@ public class HubEventSerializer implements Serializer<SpecificRecordBase> {
         }
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             DatumWriter<SpecificRecordBase> writer = new SpecificDatumWriter<>(data.getSchema());
-            encoder = encoderFactory.binaryEncoder(out, encoder);
+            BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(out, null);
             writer.write(data, encoder);
             encoder.flush();
             return out.toByteArray();

@@ -7,7 +7,6 @@ server:
 
 kafka:
   bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-  schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
   topics:
     sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
     hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}

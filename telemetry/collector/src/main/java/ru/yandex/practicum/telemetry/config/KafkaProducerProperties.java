@@ -11,5 +11,4 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProducerProperties {
     private String bootstrapServers;
-    private String schemaRegistryUrl;
 }
