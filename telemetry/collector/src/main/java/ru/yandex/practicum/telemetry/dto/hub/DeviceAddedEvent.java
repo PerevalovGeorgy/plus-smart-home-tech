@@ -1,6 +1,5 @@
 package ru.yandex.practicum.telemetry.dto.hub;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,7 +9,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(callSuper = true)
-@Schema(description = "добавление нового устройства")
 public class DeviceAddedEvent extends HubEvent{
 
     @NotBlank

@@ -24,11 +24,6 @@
             <artifactId>avro-schemas</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.6.0</version>
-        </dependency>
     </dependencies>
 
     </dependencyManagement>

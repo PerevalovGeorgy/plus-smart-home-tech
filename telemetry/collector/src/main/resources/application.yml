@@ -16,4 +16,3 @@ logging:
     root: INFO
     ru.yandex.practicum.telemetry: DEBUG
     org.apache.kafka.clients.producer: INFO
-    io.confluent.kafka.serializers: DEBUG
