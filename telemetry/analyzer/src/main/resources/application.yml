@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: analyzer
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/telemetry_analyzer}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  sql:
+    init:
+      mode: always
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      snapshot:
+        group-id: analyzer-snapshot-group
+        auto-offset-reset: earliest
+      hub-event:
+        group-id: analyzer-hub-event-group
+        auto-offset-reset: earliest
+
+kafka:
+  topics:
+    snapshots: ${KAFKA_TOPIC_SNAPSHOTS:telemetry.snapshots.v1}
+    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.telemetry: DEBUG
+    org.apache.kafka: WARN
