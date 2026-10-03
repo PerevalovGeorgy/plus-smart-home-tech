@@ -9,7 +9,7 @@ spring:
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
       auto.register.schemas: true
-      use.latest.version: true
+
 
 grpc:
   server:
