@@ -5,11 +5,7 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-    properties:
-      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-      auto.register.schemas: true
-
+      value-serializer: ru.yandex.practicum.telemetry.serializer.GeneralAvroSerializer
 
 grpc:
   server:
