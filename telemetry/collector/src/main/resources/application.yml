@@ -1,16 +1,20 @@
 spring:
   application:
     name: collector
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
 
 grpc:
   server:
     port: 9090
 
-#kafka:
-#  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-#  topics:
-#    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
-#    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
+kafka:
+  topics:
+    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
+    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
 
 logging:
   level:

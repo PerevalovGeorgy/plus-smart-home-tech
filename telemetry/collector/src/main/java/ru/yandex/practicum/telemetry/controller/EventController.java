@@ -12,6 +12,7 @@ import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.telemetry.handler.HubEventHandler;
 import ru.yandex.practicum.telemetry.handler.SensorEventHandler;
+import ru.yandex.practicum.telemetry.producer.KafkaEventProducer;
 
 import java.util.Map;
 import java.util.Set;
@@ -22,12 +23,14 @@ import java.util.stream.Collectors;
 public class EventController extends CollectorControllerGrpc.CollectorControllerImplBase {
 
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
+    private final KafkaEventProducer kafkaEventProducer;
 
     private final Map<SensorEventProto.PayloadCase, SensorEventHandler> sensorEventHandlers;
     private final Map<HubEventProto.PayloadCase, HubEventHandler> hubEventHandlers;
 
     public EventController(Set<SensorEventHandler> sensorEventHandlers,
-                           Set<HubEventHandler> hubEventHandlers) {
+                           Set<HubEventHandler> hubEventHandlers,
+                           KafkaEventProducer kafkaEventProducer) {
         this.sensorEventHandlers = sensorEventHandlers.stream()
                 .collect(Collectors.toMap(
                         SensorEventHandler::getMessageType,
@@ -38,6 +41,7 @@ public class EventController extends CollectorControllerGrpc.CollectorController
                         HubEventHandler::getMessageType,
                         Function.identity()
                 ));
+        this.kafkaEventProducer = kafkaEventProducer;
     }
 
     @Override
@@ -52,6 +56,7 @@ public class EventController extends CollectorControllerGrpc.CollectorController
                         "Не найден обработчик для события датчика: " + request.getPayloadCase());
             }
             handler.handle(request);
+            kafkaEventProducer.send(request);
 
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
@@ -77,6 +82,7 @@ public class EventController extends CollectorControllerGrpc.CollectorController
                         "Не найден обработчик для события хаба: " + request.getPayloadCase());
             }
             handler.handle(request);
+            kafkaEventProducer.send(request);
 
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
