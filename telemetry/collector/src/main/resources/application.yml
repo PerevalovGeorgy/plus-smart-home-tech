@@ -8,7 +8,7 @@ spring:
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
     properties:
       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-      auto.register.schemas: false
+      auto.register.schemas: true
       use.latest.version: true
 
 grpc:
