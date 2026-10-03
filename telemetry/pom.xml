@@ -13,8 +13,11 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>aggregator</module>
         <module>serialization</module>
         <module>collector</module>
+        <module>eventDataProducer</module>
+        <module>analyzer</module>
     </modules>
 
     <dependencyManagement>
