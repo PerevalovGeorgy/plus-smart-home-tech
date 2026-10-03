@@ -24,6 +24,8 @@ logging:
   level:
     root: INFO
     ru.yandex.practicum.telemetry: DEBUG
+    io.confluent.kafka.serializers: TRACE
+    org.apache.avro: TRACE
     org.apache.kafka.clients.producer: INFO
     org.apache.kafka: DEBUG
     io.confluent: DEBUG
