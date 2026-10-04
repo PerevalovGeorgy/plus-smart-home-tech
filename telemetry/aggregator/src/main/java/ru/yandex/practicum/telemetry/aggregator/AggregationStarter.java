@@ -30,7 +30,6 @@ public class AggregationStarter {
     private final String sensorsTopic;
     private final String snapshotsTopic;
 
-    // Хранилище снапшотов по hubId
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
     public AggregationStarter(
@@ -65,7 +64,6 @@ public class AggregationStarter {
                 consumer.commitSync();
             }
         } catch (WakeupException ignored) {
-            // штатное завершение
         } catch (Exception e) {
             log.error("Ошибка во время обработки событий от датчиков", e);
         } finally {
@@ -95,7 +93,6 @@ public class AggregationStarter {
         SensorStateAvro oldState = snapshot.getSensorsState().get(sensorId);
 
         if (oldState != null) {
-            // Игнорируем старое событие или событие с теми же данными
             if (oldState.getTimestamp().isAfter(event.getTimestamp())
                     || oldState.getData().equals(event.getPayload())) {
                 return Optional.empty();

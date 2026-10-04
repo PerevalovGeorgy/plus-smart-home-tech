@@ -48,7 +48,7 @@ message ScenarioConditionProto {
 }
 
 message DeviceActionProto {
-  string sensor_id = 1; // идентификатор устройства
+  string sensor_id = 1;
   ActionTypeProto type = 2;
   optional int32 value = 3;
 }

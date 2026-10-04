@@ -22,6 +22,5 @@ public class MotionSensorEventHandler implements SensorEventHandler {
         MotionSensorProto motion = event.getMotion();
         log.info("Датчик движения {}: motion={}, linkQuality={}, voltage={}",
                 event.getId(), motion.getMotion(), motion.getLinkQuality(), motion.getVoltage());
-        // Здесь может быть сохранение в БД, отправка в Kafka и т.д.
     }
 }
