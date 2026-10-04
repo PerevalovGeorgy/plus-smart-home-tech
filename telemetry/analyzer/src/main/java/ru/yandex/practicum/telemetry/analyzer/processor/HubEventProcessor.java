@@ -54,7 +54,13 @@ public class HubEventProcessor implements Runnable {
 
             while (true) {
                 ConsumerRecords<String, HubEventAvro> records = consumer.poll(POLL_TIMEOUT);
-                records.forEach(record -> processEvent(record.value()));
+                records.forEach(record -> {
+                    try {
+                        processEvent(record.value());
+                    } catch (Exception e) {
+                        log.error("Ошибка при обработке события хаба: {}", record.value(), e);
+                    }
+                });
                 consumer.commitSync();
             }
         } catch (WakeupException ignored) {
@@ -105,8 +111,10 @@ public class HubEventProcessor implements Runnable {
     }
 
     private void saveScenario(String hubId, ScenarioAddedEventAvro event) {
-        Scenario scenario = scenarioRepository.findByHubIdAndName(hubId, event.getName())
-                .orElseGet(Scenario::new);
+        scenarioRepository.findByHubIdAndName(hubId, event.getName())
+                .ifPresent(scenarioRepository::delete);
+
+        Scenario scenario = new Scenario();
         scenario.setHubId(hubId);
         scenario.setName(event.getName());
 
@@ -122,7 +130,6 @@ public class HubEventProcessor implements Runnable {
             condition.setType(ConditionType.valueOf(conditionAvro.getType().name()));
             condition.setOperation(ConditionOperation.valueOf(conditionAvro.getOperation().name()));
             condition.setValue(extractIntValue(conditionAvro.getValue()));
-            conditionRepository.save(condition);
 
             ScenarioCondition link = new ScenarioCondition();
             link.setScenario(scenario);
@@ -142,7 +149,6 @@ public class HubEventProcessor implements Runnable {
             Action action = new Action();
             action.setType(ActionType.valueOf(actionAvro.getType().name()));
             action.setValue(actionAvro.getValue());
-            actionRepository.save(action);
 
             ScenarioAction link = new ScenarioAction();
             link.setScenario(scenario);

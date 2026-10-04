@@ -69,21 +69,16 @@ public class SnapshotProcessor {
     }
 
     @Transactional
-    protected void processSnapshot(SensorsSnapshotAvro snapshot) {
+    public void processSnapshot(SensorsSnapshotAvro snapshot) {
+        log.info("Обрабатываю снапшот для хаба {}", snapshot.getHubId());
         List<Scenario> scenarios = scenarioRepository.findByHubId(snapshot.getHubId());
-        if (scenarios.isEmpty()) {
-            return;
-        }
-
-        Map<String, SensorStateAvro> state = snapshot.getSensorsState();
+        log.info("Найдено {} сценариев для хаба {}", scenarios.size(), snapshot.getHubId());
 
         for (Scenario scenario : scenarios) {
             boolean allMatch = scenario.getConditions().stream()
-                    .allMatch(c -> checkCondition(c, state));
-
+                    .allMatch(c -> checkCondition(c, snapshot.getSensorsState()));
+            log.info("Сценарий {} совпал: {}", scenario.getName(), allMatch);
             if (allMatch) {
-                log.info("Сценарий {} выполнен для хаба {}",
-                        scenario.getName(), snapshot.getHubId());
                 executeActions(scenario, snapshot);
             }
         }
