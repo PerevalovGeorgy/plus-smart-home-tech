@@ -1,6 +1,7 @@
 package ru.yandex.practicum.telemetry.analyzer.processor;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
@@ -42,20 +43,35 @@ public class HubEventProcessor implements Runnable {
 
             while (true) {
                 ConsumerRecords<String, HubEventAvro> records = consumer.poll(POLL_TIMEOUT);
-                records.forEach(record -> {
+                if (records.isEmpty()) {
+                    continue;
+                }
+
+                boolean allProcessed = true;
+                for (ConsumerRecord<String, HubEventAvro> record : records) {
                     try {
-                        hubEventService.processEvent(record.value());   // ← через бин, транзакция сработает
+                        hubEventService.processEvent(record.value());
                     } catch (Exception e) {
                         log.error("Ошибка при обработке события хаба: {}", record.value(), e);
+                        allProcessed = false;
                     }
-                });
-                consumer.commitSync();
+                }
+
+                if (allProcessed) {
+                    consumer.commitSync();
+                } else {
+                    log.warn("Не все сообщения из batch обработаны — offset не зафиксирован");
+                }
             }
         } catch (WakeupException ignored) {
         } catch (Exception e) {
             log.error("Ошибка в HubEventProcessor", e);
         } finally {
-            try { consumer.commitSync(); } finally { consumer.close(); }
+            try {
+                consumer.close();
+            } catch (Exception e) {
+                log.warn("Ошибка при закрытии консьюмера", e);
+            }
         }
     }
 }

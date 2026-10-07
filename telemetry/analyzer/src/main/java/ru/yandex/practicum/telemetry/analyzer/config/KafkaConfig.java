@@ -26,7 +26,7 @@ public class KafkaConfig {
                 SensorsSnapshotDeserializer.class.getName());
     }
 
-    @Bean
+    @Bean(destroyMethod = "")
     public Consumer<String, HubEventAvro> hubEventConsumer(
             @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
             @Value("${spring.kafka.consumer.hub-event.group-id}") String groupId,

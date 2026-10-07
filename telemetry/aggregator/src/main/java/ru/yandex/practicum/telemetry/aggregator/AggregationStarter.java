@@ -1,6 +1,7 @@
 package ru.yandex.practicum.telemetry.aggregator;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -50,18 +51,32 @@ public class AggregationStarter {
 
             while (true) {
                 ConsumerRecords<String, SensorEventAvro> records = consumer.poll(POLL_TIMEOUT);
-                records.forEach(record -> {
-                    SensorEventAvro event = record.value();
-                    updateState(event).ifPresent(snapshot -> {
-                        producer.send(new ProducerRecord<>(
-                                snapshotsTopic,
-                                snapshot.getHubId(),
-                                snapshot
-                        ));
-                        log.info("Отправлен снапшот для хаба {}", snapshot.getHubId());
-                    });
-                });
-                consumer.commitSync();
+                if (records.isEmpty()) {
+                    continue;
+                }
+
+                boolean allProcessed = true;
+                for (ConsumerRecord<String, SensorEventAvro> record : records) {
+                    try {
+                        updateState(record.value()).ifPresent(snapshot -> {
+                            producer.send(new ProducerRecord<>(
+                                    snapshotsTopic,
+                                    snapshot.getHubId(),
+                                    snapshot
+                            ));
+                            log.info("Отправлен снапшот для хаба {}", snapshot.getHubId());
+                        });
+                    } catch (Exception e) {
+                        log.error("Ошибка обработки события датчика {}", record.value(), e);
+                        allProcessed = false;
+                    }
+                }
+
+                if (allProcessed) {
+                    consumer.commitSync();
+                } else {
+                    log.warn("Не все события датчиков из batch обработаны — offset не зафиксирован");
+                }
             }
         } catch (WakeupException ignored) {
         } catch (Exception e) {
@@ -69,12 +84,19 @@ public class AggregationStarter {
         } finally {
             try {
                 producer.flush();
-                consumer.commitSync();
+            } catch (Exception e) {
+                log.warn("Ошибка при flush продюсера", e);
             } finally {
-                log.info("Закрываем консьюмер");
-                consumer.close();
-                log.info("Закрываем продюсер");
-                producer.close();
+                try {
+                    consumer.close();
+                } catch (Exception e) {
+                    log.warn("Ошибка при закрытии консьюмера", e);
+                }
+                try {
+                    producer.close();
+                } catch (Exception e) {
+                    log.warn("Ошибка при закрытии продюсера", e);
+                }
             }
         }
     }
