@@ -3,6 +3,7 @@ package ru.yandex.practicum.telemetry.analyzer.processor;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,11 @@ public class HubEventProcessor implements Runnable {
                         hubEventService.processEvent(record.value());
                     } catch (Exception e) {
                         log.error("Ошибка при обработке события хаба: {}", record.value(), e);
+
+                        consumer.seek(
+                                new TopicPartition(record.topic(), record.partition()), record.offset());
                         allProcessed = false;
+                        break;
                     }
                 }
 

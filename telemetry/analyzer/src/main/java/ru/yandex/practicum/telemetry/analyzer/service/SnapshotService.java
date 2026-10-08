@@ -117,6 +117,8 @@ public class SnapshotService {
                         link.getSensor().getId());
             } catch (Exception e) {
                 log.error("Ошибка отправки действия на hub-router", e);
+
+                throw new RuntimeException("Не удалось отправить действие на hub-router", e);
             }
         }
     }

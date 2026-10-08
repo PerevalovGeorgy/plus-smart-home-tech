@@ -3,6 +3,7 @@ package ru.yandex.practicum.telemetry.analyzer.processor;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,12 @@ public class SnapshotProcessor {
                         snapshotService.processSnapshot(record.value());
                     } catch (Exception e) {
                         log.error("Ошибка обработки снапшота {}", record.value(), e);
+
+                        consumer.seek(new TopicPartition(record.topic(),
+                                record.partition()), record.offset());
+
                         allProcessed = false;
+                        break;
                     }
                 }
 

@@ -17,7 +17,7 @@ import java.util.Properties;
 @Configuration
 public class KafkaConfig {
 
-    @Bean
+    @Bean(destroyMethod = "")
     public Consumer<String, SensorsSnapshotAvro> snapshotConsumer(
             @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
             @Value("${spring.kafka.consumer.snapshot.group-id}") String groupId,
