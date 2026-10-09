@@ -13,8 +13,11 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>aggregator</module>
         <module>serialization</module>
         <module>collector</module>
+        <module>eventDataProducer</module>
+        <module>analyzer</module>
     </modules>
 
     <dependencyManagement>
@@ -27,4 +30,12 @@
     </dependencies>
 
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
+
 </project>
