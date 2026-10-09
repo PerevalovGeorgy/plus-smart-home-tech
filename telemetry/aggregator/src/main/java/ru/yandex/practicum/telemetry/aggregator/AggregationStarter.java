@@ -1,9 +1,11 @@
 package ru.yandex.practicum.telemetry.aggregator;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,6 @@ public class AggregationStarter {
     private final String sensorsTopic;
     private final String snapshotsTopic;
 
-    // Хранилище снапшотов по hubId
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
     public AggregationStarter(
@@ -51,65 +52,102 @@ public class AggregationStarter {
 
             while (true) {
                 ConsumerRecords<String, SensorEventAvro> records = consumer.poll(POLL_TIMEOUT);
-                records.forEach(record -> {
-                    SensorEventAvro event = record.value();
-                    updateState(event).ifPresent(snapshot -> {
-                        producer.send(new ProducerRecord<>(
-                                snapshotsTopic,
-                                snapshot.getHubId(),
-                                snapshot
-                        ));
-                        log.info("Отправлен снапшот для хаба {}", snapshot.getHubId());
-                    });
-                });
-                consumer.commitSync();
+                if (records.isEmpty()) {
+                    continue;
+                }
+
+                boolean allProcessed = true;
+                for (ConsumerRecord<String, SensorEventAvro> record : records) {
+                    try {
+                        Optional<SensorsSnapshotAvro> maybeSnapshot = updateState(record.value());
+                        if (maybeSnapshot.isPresent()) {
+                            SensorsSnapshotAvro snapshot = maybeSnapshot.get();
+
+                            producer.send(new ProducerRecord<>(
+                                    snapshotsTopic,
+                                    snapshot.getHubId(),
+                                    snapshot)).get();
+
+                            applySnapshot(snapshot.getHubId(), snapshot);
+                            log.info("Отправлен снапшот для хаба {}", snapshot.getHubId());
+                        }
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.warn("Поток был прерван при отправке в Kafka", ie);
+                        allProcessed = false;
+                        break;
+                    } catch (Exception e) {
+                        log.error("Ошибка обработки события датчика {}", record.value(), e);
+                        consumer.seek(
+                                new TopicPartition(record.topic(), record.partition()),
+                                record.offset()
+                        );
+                        allProcessed = false;
+                        break;
+                    }
+                }
+
+                if (allProcessed) {
+                    consumer.commitSync();
+                } else {
+                    log.warn("Не все события датчиков из batch обработаны — offset не зафиксирован");
+                }
             }
         } catch (WakeupException ignored) {
-            // штатное завершение
         } catch (Exception e) {
             log.error("Ошибка во время обработки событий от датчиков", e);
-        } finally {
+        }  finally {
             try {
                 producer.flush();
-                consumer.commitSync();
+            } catch (Exception e) {
+                log.warn("Ошибка при flush продюсера", e);
             } finally {
-                log.info("Закрываем консьюмер");
-                consumer.close();
-                log.info("Закрываем продюсер");
-                producer.close();
+                try {
+                    consumer.close();
+                } catch (Exception e) {
+                    log.warn("Ошибка при закрытии консьюмера", e);
+                }
+                try {
+                    producer.close();
+                } catch (Exception e) {
+                    log.warn("Ошибка при закрытии продюсера", e);
+                }
             }
         }
     }
 
     private Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
         String hubId = event.getHubId();
+        SensorsSnapshotAvro current = snapshots.get(hubId);
 
-        SensorsSnapshotAvro snapshot = snapshots.computeIfAbsent(hubId, id ->
-                SensorsSnapshotAvro.newBuilder()
-                        .setHubId(id)
-                        .setTimestamp(event.getTimestamp())
-                        .setSensorsState(new HashMap<>())
-                        .build());
-
-        String sensorId = event.getId();
-        SensorStateAvro oldState = snapshot.getSensorsState().get(sensorId);
-
-        if (oldState != null) {
-            // Игнорируем старое событие или событие с теми же данными
-            if (oldState.getTimestamp().isAfter(event.getTimestamp())
-                    || oldState.getData().equals(event.getPayload())) {
-                return Optional.empty();
+        if (current != null) {
+            SensorStateAvro oldState = current.getSensorsState().get(event.getId());
+            if (oldState != null) {
+                if (oldState.getTimestamp().isAfter(event.getTimestamp())
+                        || oldState.getData().equals(event.getPayload())) {
+                    return Optional.empty();
+                }
             }
         }
 
-        SensorStateAvro newState = SensorStateAvro.newBuilder()
+        SensorsSnapshotAvro.Builder builder = SensorsSnapshotAvro.newBuilder()
+                .setHubId(hubId)
+                .setTimestamp(event.getTimestamp());
+
+        Map<String, SensorStateAvro> newState = new HashMap<>();
+        if (current != null) {
+            newState.putAll(current.getSensorsState());
+        }
+        newState.put(event.getId(), SensorStateAvro.newBuilder()
                 .setTimestamp(event.getTimestamp())
                 .setData(event.getPayload())
-                .build();
+                .build());
+        builder.setSensorsState(newState);
 
-        snapshot.getSensorsState().put(sensorId, newState);
-        snapshot.setTimestamp(event.getTimestamp());
+        return Optional.of(builder.build());
+    }
 
-        return Optional.of(snapshot);
+    private void applySnapshot(String hubId, SensorsSnapshotAvro snapshot) {
+        snapshots.put(hubId, snapshot);
     }
 }

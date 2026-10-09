@@ -13,8 +13,6 @@ public class EventMapper {
         return Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
     }
 
-    // ==================== Sensor ====================
-
     public SensorEventAvro toAvro(SensorEventProto proto) {
         SensorEventAvro.Builder builder = SensorEventAvro.newBuilder()
                 .setId(proto.getId())
@@ -49,8 +47,6 @@ public class EventMapper {
 
         return builder.setPayload(payload).build();
     }
-
-    // ==================== Hub ====================
 
     public HubEventAvro toAvro(HubEventProto proto) {
         HubEventAvro.Builder builder = HubEventAvro.newBuilder()

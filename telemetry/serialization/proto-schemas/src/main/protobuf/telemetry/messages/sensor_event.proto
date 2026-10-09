@@ -5,7 +5,6 @@ package telemetry.message.event;
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
 
-//import "telemetry/messages/hub_event.proto";
 import "google/protobuf/timestamp.proto";
 
 message MotionSensorProto {
