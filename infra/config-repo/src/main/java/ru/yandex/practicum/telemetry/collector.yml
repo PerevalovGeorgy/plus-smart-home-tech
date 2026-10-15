@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.yandex.practicum.telemetry.serializer.GeneralAvroSerializer
+
+grpc:
+  server:
+    port: 9090
+
+kafka:
+  topics:
+    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
+    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}

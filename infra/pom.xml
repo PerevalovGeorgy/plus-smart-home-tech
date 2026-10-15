@@ -12,4 +12,9 @@
     <artifactId>infra</artifactId>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>config-server</module>
+        <module>config-repo</module>
+    </modules>
+
 </project>
