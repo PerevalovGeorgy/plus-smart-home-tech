@@ -1,27 +1,30 @@
 spring:
   application:
     name: collector
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: ru.yandex.practicum.telemetry.serializer.GeneralAvroSerializer
+  config:
+    import: configserver:http://localhost:8888
 
-grpc:
-  server:
-    port: 9090
+#  kafka:
+#    bootstrap-servers: localhost:9092
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: ru.yandex.practicum.telemetry.serializer.GeneralAvroSerializer
+#
+#grpc:
+#  server:
+#    port: 9090
 
-kafka:
-  topics:
-    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
-    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
+#kafka:
+#  topics:
+#    sensors: ${KAFKA_TOPIC_SENSORS:telemetry.sensors.v1}
+#    hubs: ${KAFKA_TOPIC_HUBS:telemetry.hubs.v1}
 
-logging:
-  level:
-    root: INFO
-    ru.yandex.practicum.telemetry: DEBUG
-    io.confluent.kafka.serializers: TRACE
-    org.apache.avro: TRACE
-    org.apache.kafka.clients.producer: INFO
-    org.apache.kafka: DEBUG
-    io.confluent: DEBUG
+#logging:
+#  level:
+#    root: INFO
+#    ru.yandex.practicum.telemetry: DEBUG
+#    io.confluent.kafka.serializers: TRACE
+#    org.apache.avro: TRACE
+#    org.apache.kafka.clients.producer: INFO
+#    org.apache.kafka: DEBUG
+#    io.confluent: DEBUG
