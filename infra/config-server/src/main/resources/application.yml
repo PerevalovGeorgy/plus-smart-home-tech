@@ -13,3 +13,4 @@ spring:
           search-locations:
             - file:./infra/config-repo/src/main/java/ru/yandex/practicum
             - file:./infra/config-repo/src/main/java/ru/yandex/practicum/telemetry
+            - file:./infra/config-repo/src/main/java/ru/yandex/practicum/commerce
