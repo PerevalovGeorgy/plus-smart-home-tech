@@ -1,0 +1,21 @@
+spring:
+  main:
+    banner-mode: CONSOLE
+    log-startup-info: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+logging:
+  level:
+    root: INFO
+    ru.yandex.practicum.telemetry: DEBUG
+    io.confluent.kafka.serializers: TRACE
+    org.apache.avro: TRACE
+    org.apache.kafka.clients.producer: INFO
+    org.apache.kafka: DEBUG
+    io.confluent: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

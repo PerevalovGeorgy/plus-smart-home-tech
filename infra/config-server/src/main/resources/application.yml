@@ -1,0 +1,16 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations:
+            - file:./infra/config-repo/src/main/java/ru/yandex/practicum
+            - file:./infra/config-repo/src/main/java/ru/yandex/practicum/telemetry
+            - file:./infra/config-repo/src/main/java/ru/yandex/practicum/commerce
