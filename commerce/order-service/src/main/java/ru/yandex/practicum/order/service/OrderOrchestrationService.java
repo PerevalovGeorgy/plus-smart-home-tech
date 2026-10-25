@@ -34,25 +34,17 @@ public class OrderOrchestrationService {
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
 
-    /**
-     * Сценарий создания заказа. Внешние вызовы выполняются вне DB-транзакции;
-     * сохранение заказа — отдельный @Transactional-метод OrderService.save.
-     */
     public OrderDto createOrder(CreateOrderRequest request) {
-        // 1. Агрегируем количество по productId: если productId встречается несколько раз,
-        //    в inventory-service уйдёт ОДИН резерв с суммарным количеством.
         Map<Long, Integer> quantityByProductId = new LinkedHashMap<>();
         for (OrderItemRequest item : request.items()) {
             quantityByProductId.merge(item.productId(), item.quantity(), Integer::sum);
         }
 
-        // 2. Запрашиваем каждый товар РОВНО ОДИН РАЗ (даже если он в нескольких позициях).
         Map<Long, ProductDto> productCache = new HashMap<>();
         for (Long productId : quantityByProductId.keySet()) {
             productCache.put(productId, fetchAndValidateProduct(productId));
         }
 
-        // 3. Резервируем. Если что-то пошло не так — освобождаем уже созданные резервы.
         List<ReserveRequest> successfulReserves = new ArrayList<>();
         try {
             for (Map.Entry<Long, Integer> entry : quantityByProductId.entrySet()) {
@@ -65,7 +57,6 @@ public class OrderOrchestrationService {
             throw e;
         }
 
-        // 4. Сохраняем заказ со снимком товарных данных.
         Order order = buildOrder(request, quantityByProductId, productCache);
         return orderService.save(order);
     }
@@ -118,7 +109,6 @@ public class OrderOrchestrationService {
                 log.info("Снят резерв по товару {} в количестве {}",
                         request.productId(), request.quantity());
             } catch (Exception ex) {
-                // Best-effort: не маскируем исходную ошибку, только логируем.
                 log.error("Не удалось снять резерв по товару {} в количестве {}",
                         request.productId(), request.quantity(), ex);
             }
