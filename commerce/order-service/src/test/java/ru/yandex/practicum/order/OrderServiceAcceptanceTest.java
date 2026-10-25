@@ -2,6 +2,8 @@ package ru.yandex.practicum.order;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
+import feign.Request;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,6 +21,7 @@ import ru.yandex.practicum.order.feign.ProductClient;
 import ru.yandex.practicum.order.repository.OrderRepository;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -174,8 +177,7 @@ class OrderServiceAcceptanceTest {
 
     @Test
     void shouldNotCreateOrderWhenProductNotFound() throws Exception {
-        when(productClient.getProductById(LAMP_ID)).thenThrow(
-                new feign.FeignException.NotFound("not found", null, null, null));
+        when(productClient.getProductById(LAMP_ID)).thenThrow(notFoundException(LAMP_ID));
 
         long before = orderRepository.count();
 
@@ -187,12 +189,18 @@ class OrderServiceAcceptanceTest {
 
         MvcResult response = postJson("/api/orders", request);
 
-        assertThat(status(response)).isEqualTo(422);
+        assertThat(status(response))
+                .as("Отсутствующий товар → 422 Unprocessable Entity")
+                .isEqualTo(422);
         assertThat(String.valueOf(readMap(response).get("message")))
+                .as("Сообщение на уровне сценария заказа, без деталей Feign")
                 .containsIgnoringCase("не найден");
 
         verify(inventoryClient, never()).reserveStock(any());
-        assertThat(orderRepository.count()).isEqualTo(before);
+        verify(inventoryClient, never()).releaseStock(any());
+        assertThat(orderRepository.count())
+                .as("Заказ не сохраняется")
+                .isEqualTo(before);
     }
 
     @Test
@@ -302,11 +310,15 @@ class OrderServiceAcceptanceTest {
     }
 
     private Map<String, Object> readMap(MvcResult result) throws Exception {
-        return json.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
+        return json.readValue(
+                result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                new TypeReference<>() {});
     }
 
     private List<Map<String, Object>> readList(MvcResult result) throws Exception {
-        return json.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
+        return json.readValue(
+                result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+                new TypeReference<>() {});
     }
 
     private static Long asLong(Object value) {
@@ -315,5 +327,16 @@ class OrderServiceAcceptanceTest {
 
     private static BigDecimal asDecimal(Object value) {
         return new BigDecimal(value.toString());
+    }
+
+    private static FeignException notFoundException(long productId) {
+        Request request = Request.create(
+                Request.HttpMethod.GET,
+                "http://product-service/api/products/" + productId,
+                Map.of(),
+                new byte[0],
+                StandardCharsets.UTF_8
+        );
+        return new FeignException.NotFound("not found", request, null, null);
     }
 }
