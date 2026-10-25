@@ -90,7 +90,6 @@ class OrderServiceAcceptanceTest {
                 .anySatisfy(item -> assertThat(item).containsEntry("productName", "Acceptance Smart Lamp"))
                 .anySatisfy(item -> assertThat(item).containsEntry("productName", "Acceptance Smart Plug"));
 
-
         verify(productClient, times(1)).getProductById(LAMP_ID);
         verify(productClient, times(1)).getProductById(PLUG_ID);
         verify(inventoryClient, times(1)).reserveStock(argThat(r ->
