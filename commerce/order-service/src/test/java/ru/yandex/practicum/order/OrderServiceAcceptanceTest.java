@@ -16,6 +16,8 @@ import ru.yandex.practicum.order.dto.CreateOrderRequest;
 import ru.yandex.practicum.order.dto.OrderItemRequest;
 import ru.yandex.practicum.order.dto.ProductDto;
 import ru.yandex.practicum.order.dto.ReserveResponse;
+import ru.yandex.practicum.order.exception.InventoryServiceUnavailableException;
+import ru.yandex.practicum.order.exception.ProductServiceUnavailableException;
 import ru.yandex.practicum.order.feign.InventoryClient;
 import ru.yandex.practicum.order.feign.ProductClient;
 import ru.yandex.practicum.order.repository.OrderRepository;
@@ -279,6 +281,110 @@ class OrderServiceAcceptanceTest {
         assertThat(readMap(response)).containsKeys("message", "validationErrors");
     }
 
+    @Test
+    void shouldSaveOrderAsPendingConfirmationWhenProductServiceUnavailable() throws Exception {
+        when(productClient.getProductById(LAMP_ID))
+                .thenThrow(new ProductServiceUnavailableException(LAMP_ID, null));
+        // inventory-service работает — зарезервировать сможем
+        when(inventoryClient.reserveStock(any()))
+                .thenReturn(new ReserveResponse(true, 100, "ok"));
+
+        CreateOrderRequest request = new CreateOrderRequest(
+                "Degraded Product Buyer",
+                "degraded-product-buyer@example.com",
+                List.of(new OrderItemRequest(LAMP_ID, 2))
+        );
+
+        MvcResult response = postJson("/api/orders", request);
+
+        assertThat(status(response))
+                .as("Техническая недоступность product-service → заказ создаётся, 201")
+                .isEqualTo(201);
+
+        Map<String, Object> created = readMap(response);
+        assertThat(created.get("status"))
+                .as("Деградированный заказ сохраняется как PENDING_CONFIRMATION")
+                .isEqualTo("PENDING_CONFIRMATION");
+        assertThat(String.valueOf(created.get("statusDetails")))
+                .as("statusDetails объясняет причину ручной проверки")
+                .containsIgnoringCase("ручной проверки");
+
+        List<Map<String, Object>> items = (List<Map<String, Object>>) created.get("items");
+        assertThat(items).hasSize(1);
+        Map<String, Object> item = items.get(0);
+        assertThat(item.get("productName"))
+                .as("Название товара — placeholder, когда данные недоступны")
+                .isEqualTo("Товар #" + LAMP_ID + " (ожидает проверки)");
+        assertThat(asDecimal(item.get("price")))
+                .as("Цена деградированного товара — 0")
+                .isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void shouldSaveOrderAsPendingConfirmationWhenInventoryServiceUnavailable() throws Exception {
+        when(productClient.getProductById(LAMP_ID)).thenReturn(lamp());
+        when(inventoryClient.reserveStock(any()))
+                .thenThrow(new InventoryServiceUnavailableException(LAMP_ID, null));
+        when(inventoryClient.releaseStock(any()))
+                .thenReturn(new ReserveResponse(true, 100, "released"));
+
+        CreateOrderRequest request = new CreateOrderRequest(
+                "Degraded Inventory Buyer",
+                "degraded-inventory-buyer@example.com",
+                List.of(new OrderItemRequest(LAMP_ID, 2))
+        );
+
+        MvcResult response = postJson("/api/orders", request);
+
+        assertThat(status(response))
+                .as("Техническая недоступность inventory-service → заказ создаётся, 201")
+                .isEqualTo(201);
+        assertThat(readMap(response).get("status"))
+                .as("Деградированный заказ сохраняется как PENDING_CONFIRMATION")
+                .isEqualTo("PENDING_CONFIRMATION");
+    }
+
+
+    @Test
+    void shouldSaveOrderAsPendingConfirmationWhenCircuitBreakerOpen() throws Exception {
+        // CB-открытая цепь имитируется как обычная техническая недоступность —
+        // fallback-фабрика получит CallNotPermittedException и бросит *ServiceUnavailableException.
+        when(productClient.getProductById(LAMP_ID)).thenReturn(lamp());
+        when(inventoryClient.reserveStock(any()))
+                .thenThrow(new InventoryServiceUnavailableException(LAMP_ID,
+                        new RuntimeException("Circuit breaker is open")));
+
+        CreateOrderRequest request = new CreateOrderRequest(
+                "CB Open Buyer",
+                "cb-open-buyer@example.com",
+                List.of(new OrderItemRequest(LAMP_ID, 1))
+        );
+
+        MvcResult response = postJson("/api/orders", request);
+
+        assertThat(status(response)).isEqualTo(201);
+        assertThat(readMap(response).get("status")).isEqualTo("PENDING_CONFIRMATION");
+    }
+
+    @Test
+    void shouldSaveOrderAsConfirmedWhenBothServicesRespond() throws Exception {
+        when(productClient.getProductById(LAMP_ID)).thenReturn(lamp());
+        when(inventoryClient.reserveStock(any()))
+                .thenReturn(new ReserveResponse(true, 100, "ok"));
+
+        CreateOrderRequest request = new CreateOrderRequest(
+                "Happy Path Buyer",
+                "happy-path-buyer@example.com",
+                List.of(new OrderItemRequest(LAMP_ID, 1))
+        );
+
+        MvcResult response = postJson("/api/orders", request);
+
+        assertThat(status(response)).isEqualTo(201);
+        assertThat(readMap(response).get("status"))
+                .as("Успешный заказ — CONFIRMED, без ручной проверки")
+                .isEqualTo("CONFIRMED");
+    }
 
     private static ProductDto lamp() {
         return new ProductDto(LAMP_ID, "Acceptance Smart Lamp", "desc",
