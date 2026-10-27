@@ -3,6 +3,11 @@ server:
 
 spring:
   cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+        retry-on-all-operations: false
+        max-retries-on-next-service-instance: 2
     gateway:
       discovery:
         locator:

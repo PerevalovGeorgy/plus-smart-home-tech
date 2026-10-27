@@ -12,6 +12,12 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: true
+      loadbalancer:
+        retry:
+          enabled: true
+          retry-on-all-operations: true
+          max-retries-on-same-service-instance: 0
+          max-retries-on-next-service-instance: 2
       client:
         config:
           default: # название сервиса в @FeignClient
@@ -22,6 +28,12 @@ spring:
             connectTimeout: 3000
             readTimeout: 3000
             loggerLevel: BASIC
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
 
 resilience4j:
   circuitbreaker:
