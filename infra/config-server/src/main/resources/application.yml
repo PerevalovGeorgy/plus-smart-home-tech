@@ -14,3 +14,4 @@ spring:
             - file:./infra/config-repo/src/main/java/ru/yandex/practicum
             - file:./infra/config-repo/src/main/java/ru/yandex/practicum/telemetry
             - file:./infra/config-repo/src/main/java/ru/yandex/practicum/commerce
+            - file:./infra/config-repo/src/main/java/ru/yandex/practicum/infra
