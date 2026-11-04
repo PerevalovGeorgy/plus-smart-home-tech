@@ -1,0 +1,23 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      routes: []
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  security:
+    users:
+      - username: ivan
+        password: ivan
+        roles:
+          - USER
+      - username: anna
+        password: anna
+        roles:
+          - USER
+          - ADMIN
