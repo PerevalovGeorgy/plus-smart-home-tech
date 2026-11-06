@@ -1,6 +1,19 @@
 server:
   port: 8080
 
+app:
+  security:
+    users:
+      - username: ivan
+        password: '$2a$10$Q9Xb...c2c8c3e...'
+        roles:
+          - USER
+      - username: anna
+        password: '$2a$10$Kr7m...e1f9b4a...'
+        roles:
+          - USER
+          - ADMIN
+
 spring:
   cloud:
     loadbalancer:
