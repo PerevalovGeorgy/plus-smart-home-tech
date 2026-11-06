@@ -4,6 +4,25 @@ spring:
       enabled: false
     gateway:
       routes: []
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - http://localhost:5173
+              - http://localhost:3000
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers: '*'
+            exposed-headers:
+              - Location
+            allow-credentials: true
+            max-age: 3600
 
 eureka:
   client:
@@ -13,11 +32,11 @@ app:
   security:
     users:
       - username: ivan
-        password: ivan
+        password: '$2a$10$Q9Xb...c2c8c3e...'
         roles:
           - USER
       - username: anna
-        password: anna
+        password: '$2a$10$Kr7m...e1f9b4a...'
         roles:
           - USER
           - ADMIN

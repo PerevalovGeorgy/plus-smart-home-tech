@@ -70,11 +70,10 @@ public class GatewaySecurityConfig {
     }
 
     @Bean
-    public MapReactiveUserDetailsService userDetailsService(SecurityUsersProperties properties,
-                                                            PasswordEncoder encoder) {
+    public MapReactiveUserDetailsService userDetailsService(SecurityUsersProperties properties) {
         List<UserDetails> users = properties.getUsers().stream()
                 .map(u -> User.withUsername(u.getUsername())
-                        .password(encoder.encode(u.getPassword()))
+                        .password(u.getPassword())
                         .roles(u.getRoles().toArray(String[]::new))
                         .build())
                 .toList();
