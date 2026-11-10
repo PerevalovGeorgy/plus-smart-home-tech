@@ -16,6 +16,7 @@
         <module>config-server</module>
         <module>config-repo</module>
         <module>discovery-server</module>
+        <module>api-gateway</module>
     </modules>
 
     <dependencyManagement>

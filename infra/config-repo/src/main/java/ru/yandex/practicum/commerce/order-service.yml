@@ -8,6 +8,50 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      loadbalancer:
+        retry:
+          enabled: true
+          retry-on-all-operations: true
+          max-retries-on-same-service-instance: 0
+          max-retries-on-next-service-instance: 2
+      client:
+        config:
+          default: # название сервиса в @FeignClient
+            connectTimeout: 5000
+            readTimeout: 5000
+            loggerLevel: NONE
+          inventory-service:
+            connectTimeout: 3000
+            readTimeout: 3000
+            loggerLevel: BASIC
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+
+logging:
+  level:
+    ru.yandex.practicum.order.feign.InventoryClient: DEBUG
+    ru.yandex.practicum.order.feign.ProductClient: INFO
 
 server:
   port: 0

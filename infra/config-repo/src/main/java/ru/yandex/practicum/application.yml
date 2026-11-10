@@ -4,6 +4,12 @@ spring:
     log-startup-info: false
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: basic
 
 logging:
   level:
@@ -14,8 +20,14 @@ logging:
     org.apache.kafka.clients.producer: INFO
     org.apache.kafka: DEBUG
     io.confluent: DEBUG
+    org.springframework.cloud.openfeign.loadbalancer: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
 
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15

@@ -77,6 +77,25 @@ public class InventoryService {
         );
     }
 
+    @Transactional
+    public ReserveResponse release(ReserveRequest request) {
+        Inventory inventory = getOrThrow(request.productId());
+
+        if (inventory.getReservedQuantity() < request.quantity()) {
+            throw new IllegalArgumentException(
+                    "Нельзя снять резерв больше, чем зарезервировано для товара "
+                            + request.productId() + ": зарезервировано "
+                            + inventory.getReservedQuantity() + ", запрошено " + request.quantity());
+        }
+
+        inventory.setReservedQuantity(inventory.getReservedQuantity() - request.quantity());
+        return new ReserveResponse(
+                true,
+                inventory.getAvailableQuantity(),
+                "Резерв снят"
+        );
+    }
+
     private Inventory getOrThrow(Long productId) {
         return inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new NotFoundException(
